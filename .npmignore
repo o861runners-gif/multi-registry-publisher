@@ -33,3 +33,23 @@ NPX.md
 package-lock.json
 
 
+# 🔒 CRITICAL: Prevent environment files from being published to npm
+
+# Environment files - ALL patterns
+.env
+.env.*
+*.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+.env.staging
+
+# Temp env files (various patterns)
+.env.temp.*
+.env.tmp.*
+*.env.temp
+*.env.tmp
+temp.env
+tmp.env
