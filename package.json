@@ -32,5 +32,12 @@
     "ora": "^5.4.1",
     "node-fetch": "^2.7.0",
     "form-data": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/o861runners-gif/multi-registry-publisher"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   }
 }
