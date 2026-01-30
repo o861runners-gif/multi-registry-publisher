@@ -32,7 +32,6 @@ Phiên bản này đã được cập nhật để giải quyết các vấn đ�
 ## 🚀 Quick Start
 
 ### 1. Config file
-
 ```json
 {
   "registries": {
@@ -60,7 +59,6 @@ Phiên bản này đã được cập nhật để giải quyết các vấn đ�
 ```
 
 ### 2. Publish
-
 ```bash
 export NPM_TOKEN=npm_xxxxx
 export CODEBERG_TOKEN=xxxxx
@@ -72,7 +70,6 @@ npm-multi-publish publish
 ### 3. Kết quả
 
 **Original package.json:**
-
 ```json
 {
   "name": "my-package",
@@ -81,13 +78,11 @@ npm-multi-publish publish
 ```
 
 **Packages được publish:**
-
 - npmjs: `my-package@1.26.0130.11545`
 - codeberg: `@o861runners/my-package@1.26.0130.11545`
 - github: `@myusername/my-package@1.26.0130.11545`
 
 **Files được tạo:**
-
 ```
 .npm-multi-publish-tmp/
 ├── npmjs-my-package-1.26.0130.11545.tgz
@@ -106,7 +101,6 @@ npm-multi-publish publish
 3. `packForRegistry()` - Pack file .tgz riêng
 
 **Flow mới:**
-
 ```
 Original package.json
     ↓
@@ -130,19 +124,16 @@ For each registry:
 ## 🔍 Example Commands
 
 ### Publish to all registries
-
 ```bash
 npm-multi-publish publish
 ```
 
 ### Publish to specific registries
-
 ```bash
 npm-multi-publish publish --target npmjs,codeberg
 ```
 
 ### Test from each registry
-
 ```bash
 # NPM
 npx --yes my-package hello
@@ -159,13 +150,11 @@ npx --yes --registry=https://npm.pkg.github.com @myusername/my-package hello
 Format: `1.yy.mmdd.1hhMM`
 
 **Ví dụ:**
-
 - 30/01/2026 15:45 → `1.26.0130.11545`
 - 15/12/2026 09:30 → `1.26.1215.10930`
 - 01/03/2027 23:59 → `1.27.0301.12359`
 
 **Giải thích:**
-
 - `1` - Fixed prefix
 - `yy` - 2 chữ số cuối của năm (26 = 2026)
 - `mmdd` - Tháng + ngày (0130 = 30 tháng 1)

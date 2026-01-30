@@ -1,7 +1,7 @@
 {
   "name": "npm-multi-publish",
-  "version": "1.0.0",
-  "description": "CLI tool to build, pack and publish NPM packages to multiple registries",
+  "version": "1.1.0",
+  "description": "CLI tool to build, pack and publish NPM packages to multiple registries with auto-versioning",
   "type": "module",
   "main": "src/index.js",
   "bin": {
@@ -17,7 +17,9 @@
     "multi-registry",
     "github-packages",
     "gitea",
-    "supabase"
+    "codeberg",
+    "supabase",
+    "auto-version"
   ],
   "author": "",
   "license": "MIT",

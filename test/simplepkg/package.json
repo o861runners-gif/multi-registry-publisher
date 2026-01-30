@@ -1,5 +1,5 @@
 {
-  "name": "@o861runners-gif/simplepkg2",
+  "name": "simplepkg2",
   "version": "1.0.3",
   "description": "A simple CLI package",
   "main": "cli.js",

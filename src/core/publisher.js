@@ -1,11 +1,13 @@
-import { execSync } from 'child_process';
-import { NpmRegistry } from '../registries/npm.js';
-import { GitHubRegistry } from '../registries/github.js';
-import { GiteaRegistry } from '../registries/gitea.js';
-import { SupabaseRegistry } from '../registries/supabase.js';
-import { PocketBaseRegistry } from '../registries/pocketbase.js';
-import chalk from 'chalk';
-import ora from 'ora';
+import { execSync } from "child_process";
+import fs from "fs";
+import path from "path";
+import { NpmRegistry } from "../registries/npm.js";
+import { GitHubRegistry } from "../registries/github.js";
+import { GiteaRegistry } from "../registries/gitea.js";
+import { SupabaseRegistry } from "../registries/supabase.js";
+import { PocketBaseRegistry } from "../registries/pocketbase.js";
+import chalk from "chalk";
+import ora from "ora";
 
 const REGISTRY_TYPES = {
   npm: NpmRegistry,
@@ -20,6 +22,7 @@ export class Publisher {
     this.config = config;
     this.options = options;
     this.registries = this.initRegistries();
+    this.tmpDir = path.join(process.cwd(), ".npm-multi-publish-tmp");
   }
 
   /**
@@ -50,51 +53,148 @@ export class Publisher {
     }
 
     if (registries.length === 0) {
-      throw new Error('No enabled registries found');
+      throw new Error("No enabled registries found");
     }
 
     return registries;
   }
 
   /**
+   * Generate version: 1.yy.mmdd.1hhMM
+   * @returns {string} Version string
+   *
+   * Examples:
+   * - 30/01/2026 15:45 → "1.26.0130.11545"
+   * - 15/12/2026 09:30 → "1.26.1215.10930"
+   */
+  generateVersion() {
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const hh = String(now.getHours()).padStart(2, "0");
+    const MM = String(now.getMinutes()).padStart(2, "0");
+
+    return `1.${yy}.${mm}${dd}.1${hh}${MM}`;
+  }
+
+  /**
+   * Create package.json for specific registry
+   * @param {object} registry - Registry instance
+   * @param {object} originalPkg - Original package.json content
+   * @returns {object} { pkgPath: string, pkg: object }
+   *
+   * This creates a registry-specific package.json with:
+   * - New auto-generated version
+   * - Registry-specific package name (with scope if applicable)
+   */
+  async createRegistryPackage(registry, originalPkg) {
+    const registryPkgPath = path.join(this.tmpDir, `package-${registry.name}.json`);
+    const newVersion = this.generateVersion();
+
+    // Clone package.json
+    const registryPkg = { ...originalPkg };
+
+    // Update version
+    registryPkg.version = newVersion;
+
+    console.log(JSON.stringify({ registry, originalPkg, registryPkg }, null, 2));
+
+    // Update package name based on registry config
+    if (registry.config.scope) {
+      // Remove existing scope if any
+      const baseName = registryPkg.name.replace(/^@[^/]+\//, "");
+      registryPkg.name = `${registry.config.scope}/${baseName}`;
+    }
+
+    if (registry.config.package_name && registry.config.package_name + "" !== "") {
+      registryPkg.name = registry.config.package_name;
+    }
+
+    // Write registry-specific package.json
+    fs.writeFileSync(registryPkgPath, JSON.stringify(registryPkg, null, 2));
+
+    return { pkgPath: registryPkgPath, pkg: registryPkg };
+  }
+
+  /**
+   * Pack package for specific registry
+   * @param {object} registry - Registry instance
+   * @param {string} pkgPath - Path to registry-specific package.json
+   * @returns {string} Path to created .tgz file
+   *
+   * Flow:
+   * 1. Backup original package.json
+   * 2. Replace with registry-specific package.json
+   * 3. Run npm pack
+   * 4. Rename .tgz with registry name prefix
+   * 5. Restore original package.json
+   */
+  async packForRegistry(registry, pkgPath) {
+    const spinner = ora(`Packing for ${registry.name}...`).start();
+
+    try {
+      // Backup original package.json
+      const originalPkgPath = path.join(process.cwd(), "package.json");
+      const backupPkgPath = path.join(this.tmpDir, "package.json.backup");
+      fs.copyFileSync(originalPkgPath, backupPkgPath);
+
+      // Replace with registry-specific package.json
+      fs.copyFileSync(pkgPath, originalPkgPath);
+
+      // Pack
+      const packOutput = execSync("npm pack --json", { encoding: "utf-8" });
+      const packInfo = JSON.parse(packOutput)[0];
+      const artifactPath = packInfo.filename;
+
+      // Move to registry-specific directory with registry name prefix
+      const registryArtifactPath = path.join(this.tmpDir, `${registry.name}-${packInfo.filename}`);
+      fs.renameSync(artifactPath, registryArtifactPath);
+
+      // Restore original package.json
+      fs.copyFileSync(backupPkgPath, originalPkgPath);
+
+      spinner.succeed(`Package created for ${registry.name}`);
+      console.log(chalk.gray(`   Name: ${packInfo.name}@${packInfo.version}`));
+      console.log(chalk.gray(`   Size: ${(packInfo.size / 1024).toFixed(2)} KB`));
+      console.log(chalk.gray(`   File: ${registryArtifactPath}`));
+
+      return registryArtifactPath;
+    } catch (error) {
+      spinner.fail(`Pack failed for ${registry.name}`);
+      throw error;
+    }
+  }
+
+  /**
    * Main execution flow
    */
   async run() {
-    console.log(chalk.bold('\n🚀 NPM Multi-Registry Publisher\n'));
+    console.log(chalk.bold("\n🚀 NPM Multi-Registry Publisher\n"));
+
+    // Create temp directory
+    if (!fs.existsSync(this.tmpDir)) {
+      fs.mkdirSync(this.tmpDir, { recursive: true });
+    }
 
     // 1. Build (if needed)
-    let artifactPath;
     if (!this.options.skipBuild && this.config.build?.command) {
-      const spinner = ora('Building package...').start();
+      const spinner = ora("Building package...").start();
       try {
-        execSync(this.config.build.command, { stdio: 'pipe' });
-        spinner.succeed('Build completed');
+        execSync(this.config.build.command, { stdio: "pipe" });
+        spinner.succeed("Build completed");
       } catch (error) {
-        spinner.fail('Build failed');
+        spinner.fail("Build failed");
         throw error;
       }
     }
 
-    // 2. Pack
-    const spinner = ora('Packing package...').start();
-    try {
-      const packOutput = execSync('npm pack --json', { encoding: 'utf-8' });
-      const packInfo = JSON.parse(packOutput)[0];
-      artifactPath = packInfo.filename;
-
-      spinner.succeed('Package created');
-      console.log(chalk.gray(`   Name: ${packInfo.name}@${packInfo.version}`));
-      console.log(chalk.gray(`   Size: ${(packInfo.size / 1024).toFixed(2)} KB`));
-      console.log(chalk.gray(`   File: ${artifactPath}`));
-    } catch (error) {
-      spinner.fail('Pack failed');
-      throw error;
-    }
-
-    console.log('');
+    // 2. Read original package.json
+    const originalPkg = JSON.parse(fs.readFileSync("package.json", "utf-8"));
+    console.log(chalk.bold(`\n📦 Original package: ${originalPkg.name}@${originalPkg.version}\n`));
 
     // 3. Validate all registries
-    console.log(chalk.bold('📋 Validating registries...\n'));
+    console.log(chalk.bold("📋 Validating registries...\n"));
     for (const registry of this.registries) {
       try {
         await registry.validate();
@@ -105,10 +205,10 @@ export class Publisher {
       }
     }
 
-    console.log('');
+    console.log("");
 
     // 4. Authenticate all
-    console.log(chalk.bold('🔑 Authenticating...\n'));
+    console.log(chalk.bold("🔑 Authenticating...\n"));
     for (const registry of this.registries) {
       try {
         await registry.authenticate();
@@ -119,10 +219,10 @@ export class Publisher {
       }
     }
 
-    console.log('');
+    console.log("");
 
-    // 5. Publish to each registry
-    console.log(chalk.bold('📦 Publishing...\n'));
+    // 5. Create and publish to each registry
+    console.log(chalk.bold("📦 Creating packages and publishing...\n"));
     const results = [];
 
     for (const registry of this.registries) {
@@ -134,21 +234,42 @@ export class Publisher {
           dryRun: true,
         });
       } else {
-        const result = await registry.publish(artifactPath);
-        results.push({
-          registry: registry.name,
-          ...result,
-        });
+        try {
+          // Create registry-specific package
+          const { pkgPath, pkg } = await this.createRegistryPackage(registry, originalPkg);
+          console.log(chalk.blue(`📝 Package name for ${registry.name}: ${pkg.name}@${pkg.version}`));
 
-        if (result.success) {
-          console.log(chalk.green(`✓ ${registry.name}`));
-        } else {
-          console.log(chalk.red(`✗ ${registry.name}: ${result.error}`));
+          // Pack for registry
+          const artifactPath = await this.packForRegistry(registry, pkgPath);
+
+          // Publish
+          const result = await registry.publish(artifactPath);
+          results.push({
+            registry: registry.name,
+            packageName: pkg.name,
+            version: pkg.version,
+            ...result,
+          });
+
+          if (result.success) {
+            console.log(chalk.green(`✓ ${registry.name} - ${pkg.name}@${pkg.version}`));
+          } else {
+            console.log(chalk.red(`✗ ${registry.name}: ${result.error}`));
+          }
+        } catch (error) {
+          results.push({
+            registry: registry.name,
+            success: false,
+            error: error.message,
+          });
+          console.log(chalk.red(`✗ ${registry.name}: ${error.message}`));
+        }finally{
+          
         }
+
+        console.log("");
       }
     }
-
-    console.log('');
 
     // 6. Cleanup
     for (const registry of this.registries) {
@@ -165,28 +286,29 @@ export class Publisher {
    * Print summary table
    */
   printSummary(results) {
-    console.log(chalk.bold('📊 Summary:\n'));
+    console.log(chalk.bold("📊 Summary:\n"));
 
-    const successful = results.filter(r => r.success);
-    const failed = results.filter(r => !r.success && !r.dryRun);
+    const successful = results.filter((r) => r.success);
+    const failed = results.filter((r) => !r.success && !r.dryRun);
 
     for (const result of results) {
-      const icon = result.dryRun ? '○' : result.success ? '✅' : '❌';
-      const status = result.dryRun
-        ? chalk.cyan('[DRY RUN]')
-        : result.success
-        ? chalk.green('[SUCCESS]')
-        : chalk.red('[FAILED]');
-      console.log(`${icon} ${result.registry} ${status}`);
+      const icon = result.dryRun ? "○" : result.success ? "✅" : "❌";
+      const status = result.dryRun ? chalk.cyan("[DRY RUN]") : result.success ? chalk.green("[SUCCESS]") : chalk.red("[FAILED]");
+
+      const pkgInfo = result.packageName && result.version ? ` - ${result.packageName}@${result.version}` : "";
+
+      console.log(`${icon} ${result.registry}${pkgInfo} ${status}`);
 
       if (result.url) {
         console.log(chalk.gray(`   URL: ${result.url}`));
       }
+
+      if (result.error && !result.success) {
+        console.log(chalk.red(`   Error: ${result.error}`));
+      }
     }
 
-    console.log('');
-    console.log(
-      chalk.bold(`Total: ${results.length} | Success: ${successful.length} | Failed: ${failed.length}`)
-    );
+    console.log("");
+    console.log(chalk.bold(`Total: ${results.length} | Success: ${successful.length} | Failed: ${failed.length}`));
   }
 }

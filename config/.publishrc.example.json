@@ -3,17 +3,17 @@
     "npmjs-public": {
       "type": "npm",
       "registry": "https://registry.npmjs.org",
-      "token": "{{NPM_TOKEN_PUBLIC}}",
+      "token": "{{NPM_TOKEN}}",
       "access": "public",
       "enabled": true
     },
 
-    "npmjs-private": {
-      "type": "npm",
-      "registry": "{{NPM_PRIVATE_REGISTRY}}",
-      "token": "{{NPM_TOKEN_PRIVATE}}",
-      "access": "restricted",
-      "scope": "@mycompany",
+    "codeberg": {
+      "type": "gitea",
+      "url": "https://codeberg.org",
+      "owner": "{{CODEBERG_OWNER}}",
+      "token": "{{CODEBERG_TOKEN}}",
+      "access": "public",
       "enabled": false
     },
 
@@ -39,15 +39,6 @@
       "bucket": "{{SUPABASE_BUCKET}}",
       "serviceKey": "{{SUPABASE_SERVICE_KEY}}",
       "public": true,
-      "enabled": false
-    },
-
-    "pocketbase-storage": {
-      "type": "pocketbase",
-      "url": "{{POCKETBASE_URL}}",
-      "collection": "packages",
-      "email": "{{POCKETBASE_EMAIL}}",
-      "password": "{{POCKETBASE_PASSWORD}}",
       "enabled": false
     }
   },
