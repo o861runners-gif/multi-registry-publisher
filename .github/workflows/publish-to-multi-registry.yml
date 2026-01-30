@@ -16,8 +16,9 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dotenvrtdb package
+      - name: Install ci and dotenvrtdb package
         run: |
+          npm ci
           npm install -g github:@tolaptrinhdh61-spec/dotenvrtdb
 
       - name: Publish to multi-registry
