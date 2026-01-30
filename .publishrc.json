@@ -1,6 +1,6 @@
 {
   "registries": {
-    "o861runners-nmp": {
+    "npmjs-o861runners-nmp": {
       "type": "npm",
       "owner": "",
       "package_name": "@o861runners/nmp",
@@ -8,7 +8,7 @@
       "access": "public",
       "enabled": true
     },
-    "github": {
+    "github-o861runners-gif": {
       "type": "github",
       "owner": "o861runners-gif",
       "repo": "npm-multi-publish",
@@ -16,7 +16,7 @@
       "access": "public",
       "enabled": true
     },
-    "codeberg": {
+    "codeberg-o861runners": {
       "type": "gitea",
       "url": "https://codeberg.org/",
       "owner": "o861runners",
@@ -24,11 +24,27 @@
       "access": "public",
       "enabled": true
     },
-    "giteadh": {
+    "gitea-dhnpm": {
       "type": "gitea",
       "url": "https://i.dh-his.com",
       "owner": "dhnpm",
       "token": "{{GITEADH_TOKEN_O861RUNNERS_NMP}}",
+      "access": "public",
+      "enabled": true
+    },
+    "npmjs-ohau26-1221-nmp": {
+      "type": "npm",
+      "owner": "",
+      "package_name": "@ohau26-1221/nmp",
+      "token": "{{NPM_TOKEN_OHAU261221}}",
+      "access": "public",
+      "enabled": true
+    },
+    "codeberg-ohau261221": {
+      "type": "gitea",
+      "url": "https://codeberg.org/",
+      "owner": "ohau261221",
+      "token": "{{CODEBERG_TOKEN_OHAU261221_NMP}}",
       "access": "public",
       "enabled": true
     }
