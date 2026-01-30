@@ -8,4 +8,4 @@ dist/
 build/
 *.log
 .DS_Store
-*.publishrc.json
+test/simplepkg/.publishrc.json

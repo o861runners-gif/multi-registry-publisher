@@ -1,0 +1,20 @@
+{
+  "registries": {
+    "o861runners-nmp": {
+      "type": "npm",
+      "owner": "",
+      "package_name": "@o861runners/nmp",
+      "token": "{{NPM_TOKEN_O861RUNNERS}}",
+      "access": "public",
+      "enabled": false
+    }
+  },
+  "build": {
+    "command": null,
+    "skipBuild": false
+  },
+  "npm": {
+    "defaultArgs": ["--no-git-checks"],
+    "customArgs": []
+  }
+}
