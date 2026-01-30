@@ -20,7 +20,9 @@ jobs:
         run: |
           npm ci
           npm install -g github:@tolaptrinhdh61-spec/dotenvrtdb
+          npm install -g dotenv-cli
 
       - name: Publish to multi-registry
         run: |
-          dotenvrtdb -eUrl ${{ secrets.DOTENVRTDB_URL }} -- node ./bin/cli.js publish
+          dotenvrtdb -eUrl ${{ secrets.DOTENVRTDB_URL }} -e ./.env
+          dotenv -e ./.env -- node ./bin/cli.js publish
