@@ -12,7 +12,6 @@
       "type": "github",
       "owner": "o861runners-gif",
       "repo": "npm-multi-publish",
-      "package_name": "nmp",
       "token": "{{GITHUB_TOKEN_O861RUNNERS_NMP}}",
       "access": "public",
       "enabled": true
