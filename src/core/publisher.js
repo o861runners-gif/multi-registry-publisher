@@ -105,8 +105,6 @@ export class Publisher {
     // Update version
     registryPkg.version = newVersion;
 
-    console.log(JSON.stringify({ registry, originalPkg, registryPkg }, null, 2));
-
     // Update package name based on registry config
     if (registry.config.scope) {
       // Remove existing scope if any
