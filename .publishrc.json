@@ -6,7 +6,7 @@
       "package_name": "@o861runners/nmp",
       "token": "{{NPM_TOKEN_O861RUNNERS}}",
       "access": "public",
-      "enabled": false
+      "enabled": true
     }
   },
   "build": {
