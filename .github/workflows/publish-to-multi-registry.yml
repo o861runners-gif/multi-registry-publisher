@@ -24,5 +24,5 @@ jobs:
 
       - name: Publish to multi-registry
         run: |
-          dotenvrtdb -e ./.env -eUrl ${{ secrets.DOTENVRTDB_URL }}
-          dotenv -e ./.env -- node ./bin/cli.js publish
+          dotenvrtdb -e .env -eUrl ${{ secrets.DOTENVRTDB_URL }}
+          dotenv -e .env -- node ./bin/cli.js publish
