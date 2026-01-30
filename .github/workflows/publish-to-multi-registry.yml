@@ -1,4 +1,4 @@
-name: Publish Package
+name: Publish Package To Multi Registry
 
 on:
   workflow_dispatch:
@@ -22,4 +22,4 @@ jobs:
 
       - name: Publish to multi-registry
         run: |
-          dotenvrtdb -eUrl ${{ secrets.DOTENVRTDB_URL }} -- node ./bin/cli.js
+          dotenvrtdb --eUrl ${{ secrets.DOTENVRTDB_URL }} node ./bin/cli.js
