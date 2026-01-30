@@ -1,0 +1,64 @@
+{
+  "registries": {
+    "npmjs-public": {
+      "type": "npm",
+      "registry": "https://registry.npmjs.org",
+      "token": "{{NPM_TOKEN_PUBLIC}}",
+      "access": "public",
+      "enabled": true
+    },
+
+    "npmjs-private": {
+      "type": "npm",
+      "registry": "{{NPM_PRIVATE_REGISTRY}}",
+      "token": "{{NPM_TOKEN_PRIVATE}}",
+      "access": "restricted",
+      "scope": "@mycompany",
+      "enabled": false
+    },
+
+    "github": {
+      "type": "github",
+      "owner": "{{GITHUB_OWNER}}",
+      "repo": "{{GITHUB_REPO}}",
+      "token": "{{GITHUB_TOKEN}}",
+      "enabled": false
+    },
+
+    "gitea-selfhost": {
+      "type": "gitea",
+      "url": "{{GITEA_URL}}",
+      "owner": "{{GITEA_OWNER}}",
+      "token": "{{GITEA_TOKEN}}",
+      "enabled": false
+    },
+
+    "supabase-backup": {
+      "type": "supabase",
+      "url": "{{SUPABASE_URL}}",
+      "bucket": "{{SUPABASE_BUCKET}}",
+      "serviceKey": "{{SUPABASE_SERVICE_KEY}}",
+      "public": true,
+      "enabled": false
+    },
+
+    "pocketbase-storage": {
+      "type": "pocketbase",
+      "url": "{{POCKETBASE_URL}}",
+      "collection": "packages",
+      "email": "{{POCKETBASE_EMAIL}}",
+      "password": "{{POCKETBASE_PASSWORD}}",
+      "enabled": false
+    }
+  },
+
+  "build": {
+    "command": null,
+    "skipBuild": false
+  },
+
+  "npm": {
+    "defaultArgs": ["--no-git-checks"],
+    "customArgs": []
+  }
+}

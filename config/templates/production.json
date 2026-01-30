@@ -1,0 +1,29 @@
+{
+  "registries": {
+    "npmjs": {
+      "type": "npm",
+      "registry": "https://registry.npmjs.org",
+      "token": "{{NPM_TOKEN}}",
+      "access": "public",
+      "enabled": true
+    },
+    
+    "github-packages": {
+      "type": "github",
+      "owner": "{{GITHUB_OWNER}}",
+      "repo": "{{GITHUB_REPO}}",
+      "token": "{{GITHUB_TOKEN}}",
+      "enabled": true
+    }
+  },
+
+  "build": {
+    "command": "npm run build",
+    "skipBuild": false
+  },
+
+  "npm": {
+    "defaultArgs": ["--no-git-checks"],
+    "customArgs": []
+  }
+}

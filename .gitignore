@@ -1,0 +1,11 @@
+node_modules/
+*.tgz
+.npm-multi-publish-tmp/
+.env
+.env.*
+!.env.example
+dist/
+build/
+*.log
+.DS_Store
+*.publishrc.json
