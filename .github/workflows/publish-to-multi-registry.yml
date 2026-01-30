@@ -1,0 +1,25 @@
+name: Publish Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-to-multi-registry:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dotenvrtdb package
+        run: |
+          npm install -g github:@tolaptrinhdh61-spec/dotenvrtdb
+
+      - name: Publish to multi-registry
+        run: |
+          dotenvrtdb --eUrl ${{ secrets.DOTENVRTDB_URL }} node ./bin/cli.js
