@@ -68,13 +68,20 @@ export class Publisher {
    * - 15/12/2026 09:30 → "1.26.1215.10930"
    */
   generateVersion() {
+    // Create a new Date object
     const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const dd = String(now.getDate()).padStart(2, "0");
-    const hh = String(now.getHours()).padStart(2, "0");
-    const MM = String(now.getMinutes()).padStart(2, "0");
 
+    // Adjust to Vietnam timezone (UTC+7)
+    const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+
+    // Extract components: year, month, day, hour, minute
+    const yy = String(vietnamTime.getFullYear()).slice(-2);
+    const mm = String(vietnamTime.getMonth() + 1).padStart(2, "0");
+    const dd = String(vietnamTime.getDate()).padStart(2, "0");
+    const hh = String(vietnamTime.getHours()).padStart(2, "0");
+    const MM = String(vietnamTime.getMinutes()).padStart(2, "0");
+
+    // Return version string
     return `1.${yy}${mm}${dd}.1${hh}${MM}`;
   }
 
