@@ -33,7 +33,6 @@ export class NpmRegistry extends BaseRegistry {
     // Parse registry hostname
     const registryUrl = new URL(this.config.registry);
     const registryHost = `//${registryUrl.host}${registryUrl.pathname}`;
-    console.log(JSON.stringify({ config: this.config, registryUrl, registryHost }, null, 2));
     let npmrcContent = ``;
     if (this.config.type === "gitea") {
       npmrcContent += `${this.config.scope}:registry=${registryUrl}/` + `\n`;
@@ -52,7 +51,6 @@ export class NpmRegistry extends BaseRegistry {
     args.push("--userconfig", this.npmrcPath);
     // Add artifact path
     args.push(artifactPath);
-    console.log(args);
 
     // Parse registry hostname
     const registryUrl = new URL(this.config.registry);
