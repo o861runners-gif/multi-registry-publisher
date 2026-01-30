@@ -75,7 +75,7 @@ export class Publisher {
     const hh = String(now.getHours()).padStart(2, "0");
     const MM = String(now.getMinutes()).padStart(2, "0");
 
-    return `1.${yy}.${mm}${dd}.1${hh}${MM}`;
+    return `1.${yy}${mm}${dd}.1${hh}${MM}`;
   }
 
   /**
@@ -263,8 +263,7 @@ export class Publisher {
             error: error.message,
           });
           console.log(chalk.red(`✗ ${registry.name}: ${error.message}`));
-        }finally{
-          
+        } finally {
         }
 
         console.log("");

@@ -3,24 +3,25 @@ name: Publish Package To Multi Registry
 on:
   workflow_dispatch:
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: read
+
 jobs:
   publish-to-multi-registry:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install ci and dotenvrtdb package
         run: |
           npm ci
           npm install -g github:@tolaptrinhdh61-spec/dotenvrtdb
-          npm install -g dotenv-cli
 
       - name: Publish to multi-registry
         run: |
