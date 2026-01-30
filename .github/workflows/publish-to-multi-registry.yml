@@ -24,5 +24,7 @@ jobs:
           npm install -g github:@tolaptrinhdh61-spec/dotenvrtdb
 
       - name: Publish to multi-registry
+        env:
+          DOTENVRTDB_URL: ${{ secrets.DOTENVRTDB_URL }}
         run: |
-          dotenvrtdb -eUrl '${{ secrets.DOTENVRTDB_URL }}' -- node ./bin/cli.js publish
+          dotenvrtdb -eUrl "$DOTENVRTDB_URL" -- node ./bin/cli.js publish
