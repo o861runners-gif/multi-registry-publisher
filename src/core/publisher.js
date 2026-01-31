@@ -100,7 +100,7 @@ export class Publisher {
     const newVersion = this.generateVersion();
 
     // Clone package.json
-    const registryPkg = { ...originalPkg };
+    let registryPkg = { ...originalPkg };
 
     // Update version
     registryPkg.version = newVersion;
