@@ -204,39 +204,57 @@ export class Publisher {
     const originalPkg = JSON.parse(fs.readFileSync("package.json", "utf-8"));
     console.log(chalk.bold(`\n📦 Original package: ${originalPkg.name}@${originalPkg.version}\n`));
 
-    // 3. Validate all registries
+    // 3. Validate all registries (non-blocking)
     console.log(chalk.bold("📋 Validating registries...\n"));
+    const validatedRegistries = [];
+
     for (const registry of this.registries) {
       try {
         await registry.validate();
         console.log(chalk.green(`✓ ${registry.name}`));
+        validatedRegistries.push(registry);
       } catch (error) {
         console.log(chalk.red(`✗ ${registry.name}: ${error.message}`));
-        throw error;
+        console.log(chalk.yellow(`   ⚠️  Skipping ${registry.name} due to validation error`));
       }
     }
 
     console.log("");
 
-    // 4. Authenticate all
+    if (validatedRegistries.length === 0) {
+      throw new Error("❌ No registries passed validation. Cannot proceed.");
+    }
+
+    console.log(chalk.gray(`   ${validatedRegistries.length}/${this.registries.length} registries validated successfully\n`));
+
+    // 4. Authenticate all (non-blocking)
     console.log(chalk.bold("🔑 Authenticating...\n"));
-    for (const registry of this.registries) {
+    const authenticatedRegistries = [];
+
+    for (const registry of validatedRegistries) {
       try {
         await registry.authenticate();
         console.log(chalk.green(`✓ ${registry.name}`));
+        authenticatedRegistries.push(registry);
       } catch (error) {
         console.log(chalk.red(`✗ ${registry.name}: ${error.message}`));
-        throw error;
+        console.log(chalk.yellow(`   ⚠️  Skipping ${registry.name} due to authentication error`));
       }
     }
 
     console.log("");
+
+    if (authenticatedRegistries.length === 0) {
+      throw new Error("❌ No registries passed authentication. Cannot proceed.");
+    }
+
+    console.log(chalk.blue(`📊 Ready to publish to ${authenticatedRegistries.length}/${this.registries.length} registry(ies)\n`));
 
     // 5. Create and publish to each registry
     console.log(chalk.bold("📦 Creating packages and publishing...\n"));
     const results = [];
 
-    for (const registry of this.registries) {
+    for (const registry of authenticatedRegistries) {
       if (this.options.dryRun) {
         console.log(chalk.cyan(`[DRY RUN] ${registry.name}`));
         results.push({
@@ -274,16 +292,31 @@ export class Publisher {
             error: error.message,
           });
           console.log(chalk.red(`✗ ${registry.name}: ${error.message}`));
-        } finally {
         }
 
         console.log("");
       }
     }
 
+    // Add skipped registries to results
+    const skippedRegistries = this.registries.filter((reg) => !authenticatedRegistries.includes(reg));
+
+    for (const registry of skippedRegistries) {
+      results.push({
+        registry: registry.name,
+        success: false,
+        skipped: true,
+        error: "Validation or authentication failed",
+      });
+    }
+
     // 6. Cleanup
-    for (const registry of this.registries) {
-      await registry.cleanup();
+    for (const registry of authenticatedRegistries) {
+      try {
+        await registry.cleanup();
+      } catch (error) {
+        console.log(chalk.yellow(`   ⚠️  Cleanup warning for ${registry.name}: ${error.message}`));
+      }
     }
 
     // 7. Summary
@@ -298,15 +331,29 @@ export class Publisher {
   printSummary(results) {
     console.log(chalk.bold("📊 Summary:\n"));
 
-    const successful = results.filter((r) => r.success);
-    const failed = results.filter((r) => !r.success && !r.dryRun);
+    const successful = results.filter((r) => r.success && !r.dryRun);
+    const failed = results.filter((r) => !r.success && !r.dryRun && !r.skipped);
+    const skipped = results.filter((r) => r.skipped);
+    const dryRun = results.filter((r) => r.dryRun);
 
     for (const result of results) {
-      const icon = result.dryRun ? "○" : result.success ? "✅" : "❌";
-      const status = result.dryRun ? chalk.cyan("[DRY RUN]") : result.success ? chalk.green("[SUCCESS]") : chalk.red("[FAILED]");
+      let icon, status;
+
+      if (result.dryRun) {
+        icon = "○";
+        status = chalk.cyan("[DRY RUN]");
+      } else if (result.skipped) {
+        icon = "⊘";
+        status = chalk.yellow("[SKIPPED]");
+      } else if (result.success) {
+        icon = "✅";
+        status = chalk.green("[SUCCESS]");
+      } else {
+        icon = "❌";
+        status = chalk.red("[FAILED]");
+      }
 
       const pkgInfo = result.packageName && result.version ? ` - ${result.packageName}@${result.version}` : "";
-
       console.log(`${icon} ${result.registry}${pkgInfo} ${status}`);
 
       if (result.url) {
@@ -319,6 +366,18 @@ export class Publisher {
     }
 
     console.log("");
-    console.log(chalk.bold(`Total: ${results.length} | Success: ${successful.length} | Failed: ${failed.length}`));
+    console.log(chalk.bold(`Total: ${results.length} | Success: ${successful.length} | Failed: ${failed.length} | Skipped: ${skipped.length}`));
+
+    if (successful.length > 0) {
+      console.log(chalk.green(`\n✅ Successfully published to ${successful.length} registry(ies)`));
+    }
+
+    if (failed.length > 0) {
+      console.log(chalk.red(`\n❌ Failed to publish to ${failed.length} registry(ies)`));
+    }
+
+    if (skipped.length > 0) {
+      console.log(chalk.yellow(`\n⚠️  Skipped ${skipped.length} registry(ies) due to validation/auth errors`));
+    }
   }
 }

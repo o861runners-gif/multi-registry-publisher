@@ -16,9 +16,9 @@ export class NpmRegistry extends BaseRegistry {
       this.config.registry = this.globalConfig.defaults?.registry || "https://registry.npmjs.org";
     }
 
-    if (!this.config.token) {
-      throw new Error(`NPM registry "${this.name}" missing token`);
-    }
+    // if (!this.config.token) {
+    //   throw new Error(`NPM registry "${this.name}" missing token`);
+    // }
   }
 
   async authenticate() {
