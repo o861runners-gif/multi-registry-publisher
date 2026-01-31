@@ -6,7 +6,16 @@
       "package_name": "@o861runners/nmp",
       "token": "{{NPM_TOKEN_O861RUNNERS}}",
       "access": "public",
-      "enabled": true
+      "enabled": true,
+      "package_extra": {
+        "repository": {
+          "type": "git",
+          "url": "https://github.com/o861runners-gif/multi-registry-publisher"
+        },
+        "publishConfig": {
+          "registry": "https://registry.npmjs.org/"
+        }
+      }
     },
     "github-o861runners-gif": {
       "type": "github",

@@ -115,6 +115,12 @@ export class Publisher {
     if (registry.config.package_name && registry.config.package_name + "" !== "") {
       registryPkg.name = registry.config.package_name;
     }
+    if (registry.config.package_extra) {
+      registryPkg = {
+        ...registryPkg,
+        ...registry.config.package_extra,
+      };
+    }
 
     // Write registry-specific package.json
     fs.writeFileSync(registryPkgPath, JSON.stringify(registryPkg, null, 2));
